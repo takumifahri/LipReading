@@ -1,6 +1,20 @@
-export const PREDICT_API_URL = 'https://lipreading.takumifahri.my.id/predict';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
+function getPredictApiUrl() {
+  if (!API_BASE_URL) {
+    return null;
+  }
+
+  return `${API_BASE_URL.replace(/\/$/, '')}/predict`;
+}
+
+export const PREDICT_API_URL = getPredictApiUrl();
 
 export async function predictFromApi(landmarks) {
+  if (!PREDICT_API_URL) {
+    throw new Error('NEXT_PUBLIC_API_URL is not configured');
+  }
+
   const response = await fetch(PREDICT_API_URL, {
     method: 'POST',
     headers: {
@@ -29,4 +43,6 @@ export async function predictStub(landmarks) {
   return predictFromApi(landmarks);
 }
 
-export default { predictFromApi, predictStub, PREDICT_API_URL };
+const modelApi = { predictFromApi, predictStub, PREDICT_API_URL };
+
+export default modelApi;

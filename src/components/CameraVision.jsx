@@ -19,6 +19,7 @@ export default function CameraVision({ enabled = false, onLandmarks = () => {} }
     if (!enabled) return;
 
     let mounted = true;
+    const videoElement = videoRef.current;
 
     (async () => {
       try {
@@ -32,9 +33,9 @@ export default function CameraVision({ enabled = false, onLandmarks = () => {} }
         });
 
         streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play();
+        if (videoElement) {
+          videoElement.srcObject = stream;
+          await videoElement.play();
         }
 
         const vision = await FilesetResolver.forVisionTasks(
@@ -86,8 +87,8 @@ export default function CameraVision({ enabled = false, onLandmarks = () => {} }
         streamRef.current.getTracks().forEach((track) => track.stop());
         streamRef.current = null;
       }
-      if (videoRef.current) {
-        videoRef.current.srcObject = null;
+      if (videoElement) {
+        videoElement.srcObject = null;
       }
       faceLandmarkerRef.current = null;
     };

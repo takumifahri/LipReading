@@ -13,12 +13,16 @@ export default function WordsPage() {
   const [history, setHistory] = useState([]);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem('lip_history');
-      if (raw) setHistory(JSON.parse(raw));
-    } catch (e) {
-      // ignore
-    }
+    const frame = window.requestAnimationFrame(() => {
+      try {
+        const raw = localStorage.getItem('lip_history');
+        if (raw) setHistory(JSON.parse(raw));
+      } catch {
+        // ignore localStorage failures
+      }
+    });
+
+    return () => window.cancelAnimationFrame(frame);
   }, []);
 
   return (
@@ -43,7 +47,9 @@ export default function WordsPage() {
               <div key={i} className="flex justify-between items-center bg-white/5 p-3 rounded-xl border border-white/5">
                 <div>
                   <div className="font-bold">{h.word}</div>
-                  <div className="text-xs text-zinc-400">{new Date(h.timestamp || Date.now()).toLocaleString()}</div>
+                  <div className="text-xs text-zinc-400">
+                    {h.timestamp ? new Date(h.timestamp).toLocaleString() : 'No timestamp'}
+                  </div>
                 </div>
                 <div className="text-sm font-mono">{Math.round((h.confidence || 0) * 100)}%</div>
               </div>

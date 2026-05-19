@@ -23,6 +23,7 @@ export default function LipReadingPage() {
   const [status, setStatus] = useState('idle');
   const [statusMsg, setStatusMsg] = useState('CAMERA OFF');
   const [progress, setProgress] = useState(0);
+  const [frameCount, setFrameCount] = useState(0);
   const [prediction, setPrediction] = useState(null);
   const [history, setHistory] = useState([]);
   const [error, setError] = useState(null);
@@ -38,12 +39,16 @@ export default function LipReadingPage() {
   });
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem('lip_history');
-      if (raw) setHistory(JSON.parse(raw));
-    } catch {
-      // ignore localStorage failures
-    }
+    const frame = window.requestAnimationFrame(() => {
+      try {
+        const raw = localStorage.getItem('lip_history');
+        if (raw) setHistory(JSON.parse(raw));
+      } catch {
+        // ignore localStorage failures
+      }
+    });
+
+    return () => window.cancelAnimationFrame(frame);
   }, []);
 
   useEffect(() => {
@@ -85,7 +90,9 @@ export default function LipReadingPage() {
   const collectFrame = (landmarks) => {
     const lipPoints = LIP_INDICES.map((idx) => ({ x: landmarks[idx].x, y: landmarks[idx].y }));
     stateRef.current.buffer.push(normalizeLandmarks(lipPoints));
-    setProgress((stateRef.current.buffer.length / MAX_FRAMES) * 100);
+    const nextFrameCount = stateRef.current.buffer.length;
+    setFrameCount(nextFrameCount);
+    setProgress((nextFrameCount / MAX_FRAMES) * 100);
   };
 
   const startCapturing = () => {
@@ -107,6 +114,7 @@ export default function LipReadingPage() {
       setStatus('ready');
       setStatusMsg(hasEnoughMovement ? 'TOO SHORT, TRY AGAIN' : 'NO SIGNIFICANT MOVEMENT');
       state.buffer = [];
+      setFrameCount(0);
       setProgress(0);
       return;
     }
@@ -135,6 +143,7 @@ export default function LipReadingPage() {
       setStatusMsg('API ERROR');
     } finally {
       state.buffer = [];
+      setFrameCount(0);
       setProgress(0);
     }
   };
@@ -216,6 +225,7 @@ export default function LipReadingPage() {
                 if (cameraOn) {
                   stateRef.current.isRecording = false;
                   stateRef.current.buffer = [];
+                  setFrameCount(0);
                   setProgress(0);
                 }
               }}
@@ -255,7 +265,7 @@ export default function LipReadingPage() {
                   </div>
                 </div>
                 {status === 'recording' && (
-                  <span className="text-[10px] font-black text-red-500">{stateRef.current.buffer.length} / {MAX_FRAMES}</span>
+                  <span className="text-[10px] font-black text-red-500">{frameCount} / {MAX_FRAMES}</span>
                 )}
               </div>
             </div>
