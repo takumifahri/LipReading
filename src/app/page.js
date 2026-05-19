@@ -13,10 +13,11 @@ const LIP_START_THRESHOLD = 0.045;
 const LIP_KEEP_THRESHOLD = 0.035;
 const ACTIVITY_THRESHOLD = 0.008;
 const EMA_ALPHA = 0.15;
-const START_DELAY_FRAMES = 6;
-const SILENCE_TIMEOUT = 25;
-const MIN_FRAMES = 15;
+const START_DELAY_FRAMES = 3;
 const MAX_FRAMES = 90;
+const FEATURES_PER_FRAME = LIP_INDICES.length * 2;
+const HISTORY_STORAGE_KEY = 'lip_history';
+const HISTORY_LIMIT = 5;
 
 export default function LipReadingPage() {
   const [cameraOn, setCameraOn] = useState(false);
@@ -36,12 +37,13 @@ export default function LipReadingPage() {
     activeFrames: 0,
     silenceCounter: 0,
     cooldownUntil: 0,
+    isFinishing: false,
   });
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       try {
-        const raw = localStorage.getItem('lip_history');
+        const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
         if (raw) setHistory(JSON.parse(raw));
       } catch {
         // ignore localStorage failures
@@ -53,7 +55,7 @@ export default function LipReadingPage() {
 
   useEffect(() => {
     try {
-      localStorage.setItem('lip_history', JSON.stringify(history));
+      localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
     } catch {
       // ignore localStorage failures
     }
@@ -87,9 +89,28 @@ export default function LipReadingPage() {
     return Math.sqrt(variance);
   };
 
-  const collectFrame = (landmarks) => {
+  const vectorizeLipFrame = (landmarks) => {
     const lipPoints = LIP_INDICES.map((idx) => ({ x: landmarks[idx].x, y: landmarks[idx].y }));
-    stateRef.current.buffer.push(normalizeLandmarks(lipPoints));
+    return normalizeLandmarks(lipPoints);
+  };
+
+  const fitLandmarkFramesToModelInput = (frames) => {
+    if (frames.length === 0) return [];
+
+    if (frames.length === MAX_FRAMES) return frames;
+
+    if (frames.length < MAX_FRAMES) {
+      const lastFrame = frames[frames.length - 1];
+      return [...frames, ...Array.from({ length: MAX_FRAMES - frames.length }, () => lastFrame)];
+    }
+
+    return frames.slice(0, MAX_FRAMES);
+  };
+
+  const buildLandmarkPayload = (frames) => fitLandmarkFramesToModelInput(frames).flat();
+
+  const collectFrame = (landmarks) => {
+    stateRef.current.buffer.push(vectorizeLipFrame(landmarks));
     const nextFrameCount = stateRef.current.buffer.length;
     setFrameCount(nextFrameCount);
     setProgress((nextFrameCount / MAX_FRAMES) * 100);
@@ -97,6 +118,7 @@ export default function LipReadingPage() {
 
   const startCapturing = () => {
     stateRef.current.isRecording = true;
+    stateRef.current.isFinishing = false;
     stateRef.current.buffer = [];
     stateRef.current.silenceCounter = 0;
     setStatus('recording');
@@ -105,35 +127,36 @@ export default function LipReadingPage() {
 
   const finishCapturing = async () => {
     const state = stateRef.current;
+    if (state.isFinishing) return;
+
+    state.isFinishing = true;
     state.isRecording = false;
 
-    const totalActivity = state.historyDist.reduce((sum, value) => sum + value, 0) / Math.max(1, state.historyDist.length);
-    const hasEnoughMovement = totalActivity > LIP_KEEP_THRESHOLD * 0.8;
+    setStatus('processing');
+    setStatusMsg('ANALYZING...');
 
-    if (state.buffer.length < MIN_FRAMES || !hasEnoughMovement) {
-      setStatus('ready');
-      setStatusMsg(hasEnoughMovement ? 'TOO SHORT, TRY AGAIN' : 'NO SIGNIFICANT MOVEMENT');
+    const landmarks = buildLandmarkPayload(state.buffer);
+
+    if (landmarks.length !== MAX_FRAMES * FEATURES_PER_FRAME) {
+      setStatus('error');
+      setStatusMsg('VECTOR ERROR');
+      setError(`Invalid landmark vector size: ${landmarks.length}`);
       state.buffer = [];
+      state.isFinishing = false;
       setFrameCount(0);
       setProgress(0);
       return;
     }
 
-    setStatus('processing');
-    setStatusMsg('ANALYZING...');
-
-    let finalBuffer = [...state.buffer];
-    if (finalBuffer.length < MAX_FRAMES) {
-      const lastFrame = finalBuffer[finalBuffer.length - 1];
-      while (finalBuffer.length < MAX_FRAMES) finalBuffer.push(lastFrame);
-    } else {
-      finalBuffer = finalBuffer.slice(0, MAX_FRAMES);
-    }
-
     try {
-      const data = await predictFromApi(finalBuffer.flat());
-      setPrediction(data);
-      setHistory((prev) => [data, ...prev].slice(0, 5));
+      const data = await predictFromApi(landmarks);
+      const historyItem = {
+        ...data,
+        timestamp: data.timestamp || Date.now(),
+      };
+      setPrediction(historyItem);
+      setHistory((prev) => [historyItem, ...prev].slice(0, HISTORY_LIMIT));
+      setError(null);
       setStatus('success');
       setStatusMsg('RECOGNIZED!');
       state.cooldownUntil = Date.now() + 1500;
@@ -143,6 +166,7 @@ export default function LipReadingPage() {
       setStatusMsg('API ERROR');
     } finally {
       state.buffer = [];
+      state.isFinishing = false;
       setFrameCount(0);
       setProgress(0);
     }
@@ -157,6 +181,8 @@ export default function LipReadingPage() {
 
     const now = Date.now();
     const activity = getRecentActivity();
+
+    if (state.isFinishing) return;
 
     if (now < state.cooldownUntil) {
       setStatus('cooldown');
@@ -185,19 +211,12 @@ export default function LipReadingPage() {
     }
 
     collectFrame(landmarks);
-    const threshold = state.isRecording ? LIP_KEEP_THRESHOLD : LIP_START_THRESHOLD;
-    const isMoving = state.smoothedDist > threshold || activity > ACTIVITY_THRESHOLD;
-
-    if (isMoving) {
-      state.silenceCounter = 0;
-      setStatusMsg('LISTENING...');
-    } else {
-      state.silenceCounter += 1;
-      setStatusMsg('WAITING FOR PAUSE...');
-      if (state.silenceCounter > SILENCE_TIMEOUT || state.buffer.length >= MAX_FRAMES) {
-        finishCapturing();
-      }
+    if (state.buffer.length >= MAX_FRAMES) {
+      finishCapturing();
+      return;
     }
+
+    setStatusMsg('RECORDING 90 FRAMES...');
   };
 
   return (
@@ -224,6 +243,7 @@ export default function LipReadingPage() {
                 setStatusMsg(cameraOn ? 'CAMERA OFF' : 'CAMERA ON');
                 if (cameraOn) {
                   stateRef.current.isRecording = false;
+                  stateRef.current.isFinishing = false;
                   stateRef.current.buffer = [];
                   setFrameCount(0);
                   setProgress(0);

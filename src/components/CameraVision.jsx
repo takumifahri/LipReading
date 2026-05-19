@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
+
+const VISION_WASM_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm';
 
 export default function CameraVision({ enabled = false, onLandmarks = () => {} }) {
   const videoRef = useRef(null);
@@ -32,35 +34,51 @@ export default function CameraVision({ enabled = false, onLandmarks = () => {} }
           }
         });
 
+        if (!mounted) {
+          stream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+
         streamRef.current = stream;
         if (videoElement) {
           videoElement.srcObject = stream;
           await videoElement.play();
         }
 
-        const vision = await FilesetResolver.forVisionTasks(
-          'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm'
-        );
+        if (!mounted) return;
+
+        const vision = await FilesetResolver.forVisionTasks(VISION_WASM_URL);
+
+        if (!mounted) return;
 
         const faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
           baseOptions: {
             modelAssetPath: `/face_landmarker.task`,
-            delegate: 'GPU'
+            delegate: 'CPU'
           },
           runningMode: 'VIDEO',
           numFaces: 1
         });
+
+        if (!mounted) {
+          faceLandmarker.close();
+          return;
+        }
 
         faceLandmarkerRef.current = faceLandmarker;
 
         const loop = async () => {
           if (!mounted || !videoRef.current || !faceLandmarkerRef.current) return;
 
-          if (videoRef.current.readyState >= 2) {
-            const now = performance.now();
-            const results = faceLandmarkerRef.current.detectForVideo(videoRef.current, now);
-            if (results && results.faceLandmarks && results.faceLandmarks.length) {
-              onLandmarksRef.current(results.faceLandmarks[0]);
+          const video = videoRef.current;
+          if (video.readyState >= 2 && !video.paused && !video.ended && video.videoWidth > 0) {
+            try {
+              const results = faceLandmarkerRef.current.detectForVideo(video, performance.now());
+              if (results?.faceLandmarks?.length) {
+                onLandmarksRef.current(results.faceLandmarks[0]);
+              }
+            } catch (err) {
+              if (mounted) console.warn('CameraVision detection skipped', err);
             }
           }
 
@@ -74,7 +92,9 @@ export default function CameraVision({ enabled = false, onLandmarks = () => {} }
           canvas.height = 480;
         }
       } catch (err) {
-        console.error('CameraVision init error', err);
+        if (mounted && err?.name !== 'AbortError') {
+          console.error('CameraVision init error', err);
+        }
       }
     })();
 
@@ -88,8 +108,10 @@ export default function CameraVision({ enabled = false, onLandmarks = () => {} }
         streamRef.current = null;
       }
       if (videoElement) {
+        videoElement.pause();
         videoElement.srcObject = null;
       }
+      faceLandmarkerRef.current?.close();
       faceLandmarkerRef.current = null;
     };
   }, [enabled]);

@@ -9,18 +9,22 @@ const WORDS = [
   'pemahaman', 'pemberitahuan', 'komunikasi', 'transformasi', 'buku', 'asing'
 ];
 
+const HISTORY_STORAGE_KEY = 'lip_history';
+
 export default function WordsPage() {
   const [history, setHistory] = useState([]);
 
   useEffect(() => {
-    const frame = window.requestAnimationFrame(() => {
+    const loadHistory = () => {
       try {
-        const raw = localStorage.getItem('lip_history');
+        const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
         if (raw) setHistory(JSON.parse(raw));
       } catch {
         // ignore localStorage failures
       }
-    });
+    };
+
+    const frame = window.requestAnimationFrame(loadHistory);
 
     return () => window.cancelAnimationFrame(frame);
   }, []);
