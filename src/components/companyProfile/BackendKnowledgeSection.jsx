@@ -7,14 +7,14 @@ export default function BackendKnowledgeSection({ copy, shell, theme }) {
 
   return (
     <section id="project" className={`border-y ${isDark ? 'border-[#2e3431] bg-[#0f1110]' : 'border-[#ded8cd] bg-[#f6f3ee]'}`}>
-      <div className="mx-auto max-w-7xl px-5 py-16">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-5 sm:py-16">
         <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.22em] text-[#2f8f83]">{copy.backend.eyebrow}</p>
-            <h2 className={`mt-3 text-4xl font-black tracking-tight ${shell.ink}`}>{copy.backend.title}</h2>
+            <h2 className={`mt-3 text-3xl font-black tracking-tight sm:text-4xl ${shell.ink}`}>{copy.backend.title}</h2>
             <p className={`mt-5 leading-8 ${shell.muted}`}>{copy.backend.body}</p>
 
-            <div className="mt-8 grid grid-cols-2 gap-3">
+            <div className="mt-8 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
               {copy.backend.stats.map((item) => (
                 <div key={item.label} className={`rounded-md border p-4 ${shell.card}`}>
                   <p className={`text-2xl font-black ${shell.ink}`}>{item.value}</p>

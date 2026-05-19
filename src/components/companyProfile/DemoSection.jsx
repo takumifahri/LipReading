@@ -6,9 +6,9 @@ import { MAX_FRAMES } from '../../lib/lipReadingModel';
 
 export default function DemoSection({ copy, shell, cameraOn, toggleCamera, handleLandmarks, progress, frameCount, status, prediction, history, error }) {
   return (
-    <section id="demo" className="mx-auto grid max-w-7xl gap-8 px-5 py-16 lg:grid-cols-[1.4fr_0.8fr]">
+    <section id="demo" className="mx-auto grid max-w-7xl gap-6 px-4 py-12 sm:px-5 sm:py-16 lg:grid-cols-[1.4fr_0.8fr] lg:gap-8">
       <div className="overflow-hidden rounded-md border border-[#2e3431] bg-[#101010]">
-        <div className="flex items-center justify-between border-b border-white/10 px-5 py-4 text-white">
+        <div className="flex flex-col gap-4 border-b border-white/10 px-4 py-4 text-white sm:flex-row sm:items-center sm:justify-between sm:px-5">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.2em] text-[#8bd9ca]">{copy.demo.eyebrow}</p>
             <h2 className="mt-1 text-xl font-black">{copy.demo.title}</h2>
@@ -16,14 +16,14 @@ export default function DemoSection({ copy, shell, cameraOn, toggleCamera, handl
           <button
             type="button"
             onClick={toggleCamera}
-            className="inline-flex h-10 items-center gap-2 rounded-md bg-white px-4 text-sm font-black text-[#171717] transition hover:bg-[#8bd9ca]"
+            className="inline-flex h-10 w-fit items-center gap-2 rounded-md bg-white px-4 text-sm font-black text-[#171717] transition hover:bg-[#8bd9ca]"
           >
             <Camera size={16} />
             {cameraOn ? 'Stop' : 'Start'}
           </button>
         </div>
 
-        <div className="relative aspect-video">
+        <div className="relative aspect-[4/3] sm:aspect-video">
           {cameraOn ? (
             <CameraVision enabled={cameraOn} onLandmarks={handleLandmarks} />
           ) : (
@@ -35,11 +35,11 @@ export default function DemoSection({ copy, shell, cameraOn, toggleCamera, handl
             </div>
           )}
 
-          <div className="absolute bottom-5 left-5 right-5 rounded-md border border-white/10 bg-black/55 p-4 text-white backdrop-blur-md">
-            <div className="flex items-center justify-between gap-4">
+          <div className="absolute bottom-3 left-3 right-3 rounded-md border border-white/10 bg-black/55 p-3 text-white backdrop-blur-md sm:bottom-5 sm:left-5 sm:right-5 sm:p-4">
+            <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-white/50">{copy.demo.capture}</p>
-                <div className="mt-2 h-2 w-44 overflow-hidden rounded-full bg-white/10">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-white/50 sm:text-xs sm:tracking-[0.2em]">{copy.demo.capture}</p>
+                <div className="mt-2 h-2 w-28 overflow-hidden rounded-full bg-white/10 sm:w-44">
                   <div className="h-full rounded-full bg-[#8bd9ca]" style={{ width: `${Math.min(100, progress)}%` }} />
                 </div>
               </div>
@@ -49,7 +49,7 @@ export default function DemoSection({ copy, shell, cameraOn, toggleCamera, handl
         </div>
       </div>
 
-      <aside className={`rounded-md border p-6 ${shell.panel}`}>
+      <aside className={`rounded-md border p-4 sm:p-6 ${shell.panel}`}>
         <p className="mb-4 rounded-md border border-[#2f8f83]/30 bg-[#2f8f83]/10 px-4 py-3 text-sm font-bold text-[#2f8f83]">
           {copy.hero.note}
         </p>
@@ -62,7 +62,7 @@ export default function DemoSection({ copy, shell, cameraOn, toggleCamera, handl
             </div>
           ) : prediction ? (
             <div className="mt-5">
-              <h3 className={`text-5xl font-black tracking-tight ${shell.ink}`}>{prediction.word}</h3>
+              <h3 className={`break-words text-4xl font-black tracking-tight sm:text-5xl ${shell.ink}`}>{prediction.word}</h3>
               <p className={`mt-2 text-sm font-bold ${shell.muted}`}>{Math.round((prediction.confidence || 0) * 100)}% {copy.console.confidence}</p>
             </div>
           ) : (
@@ -80,7 +80,7 @@ export default function DemoSection({ copy, shell, cameraOn, toggleCamera, handl
           <div className="space-y-3">
             {history.length > 0 ? history.map((item, index) => (
               <div key={`${item.word}-${index}`} className={`flex items-center justify-between rounded-md border p-3 ${shell.card}`}>
-                <span className={`text-sm font-black uppercase ${shell.ink}`}>{item.word}</span>
+                <span className={`break-words text-sm font-black uppercase ${shell.ink}`}>{item.word}</span>
                 <span className={`text-xs font-mono ${shell.muted}`}>{Math.round((item.confidence || 0) * 100)}%</span>
               </div>
             )) : (

@@ -3,10 +3,10 @@ export default function TechnologySection({ copy, shell, theme }) {
 
   return (
     <section id="technology" className={`border-y ${isDark ? 'border-[#2e3431] bg-[#111413]' : 'border-[#ded8cd] bg-white'}`}>
-      <div className="mx-auto max-w-7xl px-5 py-16">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-5 sm:py-16">
         <div className="mb-10 max-w-3xl">
           <p className="text-xs font-black uppercase tracking-[0.22em] text-[#2f8f83]">{copy.capabilitiesEyebrow}</p>
-          <h2 className={`mt-3 text-4xl font-black tracking-tight ${shell.ink}`}>{copy.capabilitiesTitle}</h2>
+          <h2 className={`mt-3 text-3xl font-black tracking-tight sm:text-4xl ${shell.ink}`}>{copy.capabilitiesTitle}</h2>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">

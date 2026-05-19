@@ -8,15 +8,15 @@ export default function SiteHeader({ copy, language, setLanguage, theme, setThem
 
   return (
     <header className={`sticky top-0 z-30 border-b ${shell.header} backdrop-blur-xl`}>
-      <nav className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4">
+      <nav className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5 sm:py-4">
         <a href="#home" className="flex items-center gap-3" aria-label="LipReading.AI home">
-          <span className={`flex h-10 w-10 items-center justify-center rounded-md ${isDark ? 'bg-[#f4f1ea] text-[#171717]' : 'bg-[#171717] text-white'}`}>
+          <span className={`flex h-9 w-9 items-center justify-center rounded-md sm:h-10 sm:w-10 ${isDark ? 'bg-[#f4f1ea] text-[#171717]' : 'bg-[#171717] text-white'}`}>
             <SiReactIcon size={21} />
           </span>
-          <span className="font-black tracking-tight">LipReading.AI</span>
+          <span className="text-sm font-black tracking-tight sm:text-base">LipReading.AI</span>
         </a>
 
-        <div className={`hidden items-center gap-8 text-sm font-semibold ${shell.muted} md:flex`}>
+        <div className={`order-3 flex w-full items-center gap-4 overflow-x-auto whitespace-nowrap pb-1 text-xs font-semibold ${shell.muted} md:order-none md:w-auto md:gap-8 md:overflow-visible md:pb-0 md:text-sm`}>
           <a href="#technology" className={shell.ink}>{copy.nav.technology}</a>
           <a href="#project" className={shell.ink}>{copy.nav.project}</a>
           <a href="#demo" className={shell.ink}>{copy.nav.demo}</a>
@@ -27,7 +27,7 @@ export default function SiteHeader({ copy, language, setLanguage, theme, setThem
           <button
             type="button"
             onClick={() => setLanguage(language === 'en' ? 'id' : 'en')}
-            className={`inline-flex h-10 items-center gap-2 rounded-md border px-3 text-sm font-black ${shell.soft}`}
+            className={`inline-flex h-9 items-center gap-2 rounded-md border px-2 text-xs font-black sm:h-10 sm:px-3 sm:text-sm ${shell.soft}`}
             title="Language"
           >
             <Languages size={16} />
@@ -36,7 +36,7 @@ export default function SiteHeader({ copy, language, setLanguage, theme, setThem
           <button
             type="button"
             onClick={() => setTheme(isDark ? 'light' : 'dark')}
-            className={`inline-flex h-10 items-center justify-center rounded-md border px-3 ${shell.soft}`}
+            className={`inline-flex h-9 items-center justify-center rounded-md border px-2 sm:h-10 sm:px-3 ${shell.soft}`}
             title="Theme"
           >
             {isDark ? <Sun size={17} /> : <Moon size={17} />}
@@ -44,10 +44,10 @@ export default function SiteHeader({ copy, language, setLanguage, theme, setThem
           <button
             type="button"
             onClick={toggleCamera}
-            className="hidden h-10 items-center gap-2 rounded-md bg-[#171717] px-4 text-sm font-bold text-white transition hover:bg-[#2f8f83] sm:inline-flex"
+            className="inline-flex h-9 items-center gap-2 rounded-md bg-[#171717] px-3 text-xs font-bold text-white transition hover:bg-[#2f8f83] sm:h-10 sm:px-4 sm:text-sm"
           >
             {cameraOn ? <Camera size={16} /> : <Play size={16} />}
-            {cameraOn ? copy.nav.stop : copy.nav.start}
+            <span className="hidden sm:inline">{cameraOn ? copy.nav.stop : copy.nav.start}</span>
           </button>
         </div>
       </nav>
