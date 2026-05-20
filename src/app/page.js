@@ -8,6 +8,7 @@ import PreferenceBanner from '../components/companyProfile/PreferenceBanner';
 import SiteFooter from '../components/companyProfile/SiteFooter';
 import SiteHeader from '../components/companyProfile/SiteHeader';
 import TechnologySection from '../components/companyProfile/TechnologySection';
+import TrainedWordsSection from '../components/companyProfile/TrainedWordsSection';
 import WorkflowSection from '../components/companyProfile/WorkflowSection';
 import { COPY, getShell } from '../components/companyProfile/copy';
 import {
@@ -57,6 +58,8 @@ export default function LipReadingPage() {
     silenceCounter: 0,
     cooldownUntil: 0,
     isFinishing: false,
+    status: 'idle',
+    statusMsg: COPY.en.status.cameraOff,
   });
 
   useEffect(() => {
@@ -108,6 +111,19 @@ export default function LipReadingPage() {
     return Math.sqrt(variance);
   };
 
+  const setCaptureStatus = (nextStatus, nextStatusMsg) => {
+    const state = stateRef.current;
+    if (state.status !== nextStatus) {
+      state.status = nextStatus;
+      setStatus(nextStatus);
+    }
+
+    if (state.statusMsg !== nextStatusMsg) {
+      state.statusMsg = nextStatusMsg;
+      setStatusMsg(nextStatusMsg);
+    }
+  };
+
   const collectFrame = (landmarks) => {
     stateRef.current.buffer.push(vectorizeLipFrame(landmarks));
     const nextFrameCount = stateRef.current.buffer.length;
@@ -120,8 +136,7 @@ export default function LipReadingPage() {
     stateRef.current.isFinishing = false;
     stateRef.current.buffer = [];
     stateRef.current.silenceCounter = 0;
-    setStatus('recording');
-    setStatusMsg(copy.status.recording);
+    setCaptureStatus('recording', copy.status.recording);
   };
 
   const finishCapturing = async () => {
@@ -131,13 +146,11 @@ export default function LipReadingPage() {
     state.isFinishing = true;
     state.isRecording = false;
 
-    setStatus('processing');
-    setStatusMsg(copy.status.analyzing);
+    setCaptureStatus('processing', copy.status.analyzing);
 
     const landmarks = buildLandmarkPayload(state.buffer);
     if (landmarks.length !== MAX_FRAMES * FEATURES_PER_FRAME) {
-      setStatus('error');
-      setStatusMsg('VECTOR ERROR');
+      setCaptureStatus('error', 'VECTOR ERROR');
       setError(`Invalid landmark vector size: ${landmarks.length}`);
       state.buffer = [];
       state.isFinishing = false;
@@ -155,13 +168,11 @@ export default function LipReadingPage() {
       setPrediction(historyItem);
       setHistory((prev) => [historyItem, ...prev].slice(0, HISTORY_LIMIT));
       setError(null);
-      setStatus('success');
-      setStatusMsg(copy.status.recognized);
+      setCaptureStatus('success', copy.status.recognized);
       state.cooldownUntil = Date.now() + 1500;
     } catch (err) {
       setError(err.message || 'Prediction failed');
-      setStatus('error');
-      setStatusMsg('API ERROR');
+      setCaptureStatus('error', 'API ERROR');
     } finally {
       state.buffer = [];
       state.isFinishing = false;
@@ -183,8 +194,7 @@ export default function LipReadingPage() {
     if (state.isFinishing) return;
 
     if (now < state.cooldownUntil) {
-      setStatus('cooldown');
-      setStatusMsg(copy.status.cooldown);
+      setCaptureStatus('cooldown', copy.status.cooldown);
       state.activeFrames = 0;
       return;
     }
@@ -197,13 +207,11 @@ export default function LipReadingPage() {
           startCapturing();
           collectFrame(landmarks);
         } else {
-          setStatus('ready');
-          setStatusMsg(copy.status.validating);
+          setCaptureStatus('ready', copy.status.validating);
         }
       } else {
         state.activeFrames = 0;
-        setStatus('ready');
-        setStatusMsg(copy.status.ready);
+        setCaptureStatus('ready', copy.status.ready);
       }
       return;
     }
@@ -214,13 +222,12 @@ export default function LipReadingPage() {
       return;
     }
 
-    setStatusMsg(copy.status.recording);
+    setCaptureStatus('recording', copy.status.recording);
   };
 
   const toggleCamera = () => {
     setCameraOn((value) => !value);
-    setStatus('ready');
-    setStatusMsg(cameraOn ? copy.status.cameraOff : copy.status.cameraOn);
+    setCaptureStatus('ready', cameraOn ? copy.status.cameraOff : copy.status.cameraOn);
 
     if (cameraOn) {
       stateRef.current.isRecording = false;
@@ -253,6 +260,7 @@ export default function LipReadingPage() {
         <HeroSection copy={copy} shell={shell} theme={theme} status={status} statusMsg={statusMsg} progress={progress} frameCount={frameCount} prediction={prediction} />
         <TechnologySection copy={copy} shell={shell} theme={theme} />
         <BackendKnowledgeSection copy={copy} shell={shell} theme={theme} />
+        <TrainedWordsSection copy={copy} shell={shell} theme={theme} />
         <DemoSection
           copy={copy}
           shell={shell}

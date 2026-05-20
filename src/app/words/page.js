@@ -1,13 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-
-const WORDS = [
-  'buka', 'tutup', 'antek-antek', 'tulis', 'menulis',
-  'berbicara', 'pintu', 'membawa', 'mengambil', 'meletakkan',
-  'mengirim', 'menyimpan', 'memperbaiki', 'pembelajaran', 'perbaikan',
-  'pemahaman', 'pemberitahuan', 'komunikasi', 'transformasi', 'buku', 'asing'
-];
+import { TRAINED_WORDS } from '../../lib/trainedWords';
 
 const HISTORY_STORAGE_KEY = 'lip_history';
 
@@ -35,7 +29,7 @@ export default function WordsPage() {
         <h1 className="text-3xl font-black mb-6">Known Words</h1>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
-          {WORDS.map((w) => (
+          {TRAINED_WORDS.map((w) => (
             <div key={w} className="p-3 bg-white/5 rounded-lg border border-white/5 text-center">
               <span className="font-bold uppercase text-sm">{w}</span>
             </div>

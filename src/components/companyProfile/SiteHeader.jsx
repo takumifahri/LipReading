@@ -19,6 +19,7 @@ export default function SiteHeader({ copy, language, setLanguage, theme, setThem
         <div className={`order-3 flex w-full items-center gap-4 overflow-x-auto whitespace-nowrap pb-1 text-xs font-semibold ${shell.muted} md:order-none md:w-auto md:gap-8 md:overflow-visible md:pb-0 md:text-sm`}>
           <a href="#technology" className={shell.ink}>{copy.nav.technology}</a>
           <a href="#project" className={shell.ink}>{copy.nav.project}</a>
+          <a href="#trained-words" className={shell.ink}>{copy.nav.words}</a>
           <a href="#demo" className={shell.ink}>{copy.nav.demo}</a>
           <a href="#workflow" className={shell.ink}>{copy.nav.workflow}</a>
         </div>

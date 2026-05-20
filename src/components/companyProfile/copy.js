@@ -2,7 +2,7 @@ import { Camera, Cpu, ShieldCheck } from 'lucide-react';
 
 export const COPY = {
   en: {
-    nav: { technology: 'Technology', project: 'Project', demo: 'Live Demo', workflow: 'Workflow', start: 'Start Demo', stop: 'Stop Camera' },
+    nav: { technology: 'Technology', project: 'Project', words: 'Trained Words', demo: 'Live Demo', workflow: 'Workflow', start: 'Start Demo', stop: 'Stop Camera' },
     hero: {
       eyebrow: 'Computer vision for silent speech',
       title: 'Lip-reading intelligence for accessible interaction.',
@@ -87,6 +87,12 @@ export const COPY = {
         { value: '0.91', label: 'report accuracy' },
       ],
     },
+    trainedWords: {
+      eyebrow: 'Model vocabulary',
+      title: 'Words this model has been trained to recognize.',
+      body: 'The live demo is scoped to these Indonesian labels, so predictions should be tested with this vocabulary.',
+      countLabel: 'trained words',
+    },
     prefs: {
       title: 'Preferences',
       body: 'Stores language and theme only.',
@@ -107,7 +113,7 @@ export const COPY = {
     footer: 'Computer vision company profile and live lip-reading prototype.',
   },
   id: {
-    nav: { technology: 'Teknologi', project: 'Project', demo: 'Demo Langsung', workflow: 'Alur Kerja', start: 'Mulai Demo', stop: 'Matikan Kamera' },
+    nav: { technology: 'Teknologi', project: 'Project', words: 'Kata Terlatih', demo: 'Demo Langsung', workflow: 'Alur Kerja', start: 'Mulai Demo', stop: 'Matikan Kamera' },
     hero: {
       eyebrow: 'Computer vision untuk silent speech',
       title: 'Teknologi lip-reading untuk interaksi yang lebih aksesibel.',
@@ -191,6 +197,12 @@ export const COPY = {
         { value: '64', label: 'epoch trained' },
         { value: '0.91', label: 'report accuracy' },
       ],
+    },
+    trainedWords: {
+      eyebrow: 'Vocabulary model',
+      title: 'Kata yang sudah dilatih untuk dikenali model.',
+      body: 'Demo langsung difokuskan ke label bahasa Indonesia ini, jadi pengujian sebaiknya memakai vocabulary berikut.',
+      countLabel: 'kata terlatih',
     },
     prefs: {
       title: 'Preferensi',
