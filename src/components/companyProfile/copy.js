@@ -50,6 +50,8 @@ export const COPY = {
       title: 'From camera signal to model input.',
       body: 'The frontend handles landmark extraction and sequence shaping so the backend receives the exact vector contract expected by the trained model.',
       badge: 'Browser landmark pipeline',
+      characterLabel: 'Example animation of a person speaking',
+      characterCaption: 'Speech sample',
       steps: [
         'Detect facial landmarks from the live camera stream.',
         'Extract selected lip points and normalize each frame.',
@@ -81,8 +83,8 @@ export const COPY = {
         'Augmented report accuracy is 0.91 with macro F1 0.92 on the grouped original holdout set.',
       ],
       stats: [
-        { value: '581', label: 'base samples' },
-        { value: '2905', label: 'augmented samples' },
+        { value: '693', label: 'base videos' },
+        { value: '3465', label: 'augmented videos' },
         { value: '64', label: 'epochs trained' },
         { value: '0.91', label: 'report accuracy' },
       ],
@@ -96,9 +98,12 @@ export const COPY = {
     prefs: {
       title: 'Preferences',
       body: 'Stores language and theme only.',
+      language: 'Language',
+      theme: 'Theme',
       light: 'Light',
       dark: 'Dark',
       accept: 'Save',
+      close: 'Close',
     },
     status: {
       cameraOff: 'CAMERA OFF',
@@ -161,6 +166,8 @@ export const COPY = {
       title: 'Dari sinyal kamera ke input model.',
       body: 'Frontend menangani ekstraksi landmark dan pembentukan sequence agar backend menerima kontrak vector yang sesuai dengan model.',
       badge: 'Browser landmark pipeline',
+      characterLabel: 'Contoh animasi orang sedang berbicara',
+      characterCaption: 'Contoh bicara',
       steps: [
         'Deteksi landmark wajah dari stream kamera langsung.',
         'Ambil titik bibir terpilih dan normalisasi setiap frame.',
@@ -192,8 +199,8 @@ export const COPY = {
         'Report augmented mencapai accuracy 0.91 dengan macro F1 0.92 pada holdout original yang grouped.',
       ],
       stats: [
-        { value: '581', label: 'base samples' },
-        { value: '2905', label: 'augmented samples' },
+        { value: '693', label: 'video dasar' },
+        { value: '3465', label: 'video augmentasi' },
         { value: '64', label: 'epoch trained' },
         { value: '0.91', label: 'report accuracy' },
       ],
@@ -207,9 +214,12 @@ export const COPY = {
     prefs: {
       title: 'Preferensi',
       body: 'Menyimpan bahasa dan tema saja.',
+      language: 'Bahasa',
+      theme: 'Tema',
       light: 'Terang',
       dark: 'Gelap',
       accept: 'Simpan',
+      close: 'Tutup',
     },
     status: {
       cameraOff: 'KAMERA MATI',

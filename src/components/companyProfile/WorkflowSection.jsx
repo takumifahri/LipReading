@@ -1,13 +1,18 @@
 import { CheckCircle2 } from 'lucide-react';
+import CharacterLottie from './CharacterLottie';
 
 export default function WorkflowSection({ copy }) {
   return (
     <section id="workflow" className="bg-[#171717] text-white">
-      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-5 sm:py-16 lg:grid-cols-[0.8fr_1.2fr] lg:gap-10">
+      <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-5 sm:py-16 lg:grid-cols-[0.72fr_0.58fr_1fr] lg:items-center lg:gap-10">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.22em] text-[#8bd9ca]">{copy.workflow.eyebrow}</p>
           <h2 className="mt-3 text-3xl font-black tracking-tight sm:text-4xl">{copy.workflow.title}</h2>
           <p className="mt-5 text-sm leading-7 text-white/60 sm:text-base sm:leading-8">{copy.workflow.body}</p>
+        </div>
+        <div className="mx-auto w-full max-w-[260px] rounded-md border border-white/10 bg-white/[0.06] p-4 shadow-2xl shadow-black/20 sm:max-w-[320px]">
+          <CharacterLottie label={copy.workflow.characterLabel} />
+          <p className="mt-3 text-center text-xs font-black uppercase tracking-[0.16em] text-[#8bd9ca]">{copy.workflow.characterCaption}</p>
         </div>
         <div className="grid gap-4">
           {copy.workflow.steps.map((step, index) => (

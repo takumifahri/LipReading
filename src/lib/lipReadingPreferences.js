@@ -4,14 +4,17 @@ export const COOKIE_OK = 'lip_cookie_ok';
 
 export function readCookie(name) {
   if (typeof document === 'undefined') return null;
-  return document.cookie
+  const value = document.cookie
     .split('; ')
     .find((row) => row.startsWith(`${name}=`))
     ?.split('=')[1] || null;
+
+  return value ? decodeURIComponent(value) : null;
 }
 
 export function writeCookie(name, value) {
-  document.cookie = `${name}=${value}; Max-Age=31536000; Path=/; SameSite=Lax`;
+  if (typeof document === 'undefined') return;
+  document.cookie = `${name}=${encodeURIComponent(value)}; Max-Age=31536000; Path=/; SameSite=Lax`;
 }
 
 export function getInitialLanguage() {

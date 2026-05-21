@@ -9,12 +9,21 @@ function getCameraProfile() {
   const isMobile = window.matchMedia('(max-width: 767px), (pointer: coarse)').matches;
   const lowPowerDevice = navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4;
 
+  if (isMobile && lowPowerDevice) {
+    return {
+      width: 424,
+      height: 318,
+      frameRate: 20,
+      detectionFps: 15,
+    };
+  }
+
   if (isMobile || lowPowerDevice) {
     return {
-      width: 360,
-      height: 270,
-      frameRate: 18,
-      detectionFps: 12,
+      width: 480,
+      height: 360,
+      frameRate: 24,
+      detectionFps: 18,
     };
   }
 

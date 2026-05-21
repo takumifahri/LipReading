@@ -13,6 +13,7 @@ import WorkflowSection from '../components/companyProfile/WorkflowSection';
 import { COPY, getShell } from '../components/companyProfile/copy';
 import {
   ACTIVITY_THRESHOLD,
+  CAPTURE_DURATION_MS,
   EMA_ALPHA,
   FEATURES_PER_FRAME,
   HISTORY_LIMIT,
@@ -36,7 +37,9 @@ import { predictFromApi } from '../lib/modelApi';
 export default function LipReadingPage() {
   const [language, setLanguage] = useState('en');
   const [theme, setTheme] = useState('light');
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
   const [showCookiePanel, setShowCookiePanel] = useState(false);
+  const [showPreferenceModal, setShowPreferenceModal] = useState(false);
   const copy = COPY[language];
   const shell = getShell(theme);
 
@@ -52,6 +55,7 @@ export default function LipReadingPage() {
   const stateRef = useRef({
     isRecording: false,
     buffer: [],
+    captureStartedAt: 0,
     historyDist: [],
     smoothedDist: 0,
     activeFrames: 0,
@@ -78,6 +82,7 @@ export default function LipReadingPage() {
       }
 
       setShowCookiePanel(accepted !== 'true');
+      setPreferencesLoaded(true);
 
       try {
         const raw = localStorage.getItem(HISTORY_STORAGE_KEY);
@@ -91,9 +96,10 @@ export default function LipReadingPage() {
   }, []);
 
   useEffect(() => {
+    if (!preferencesLoaded) return;
     writeCookie(LANG_COOKIE, language);
     writeCookie(THEME_COOKIE, theme);
-  }, [language, theme]);
+  }, [language, preferencesLoaded, theme]);
 
   useEffect(() => {
     try {
@@ -125,16 +131,23 @@ export default function LipReadingPage() {
   };
 
   const collectFrame = (landmarks) => {
-    stateRef.current.buffer.push(vectorizeLipFrame(landmarks));
-    const nextFrameCount = stateRef.current.buffer.length;
-    setFrameCount(nextFrameCount);
-    setProgress((nextFrameCount / MAX_FRAMES) * 100);
+    const state = stateRef.current;
+    const elapsed = Math.max(Date.now() - state.captureStartedAt, 0);
+    state.buffer.push({
+      at: elapsed,
+      vector: vectorizeLipFrame(landmarks),
+    });
+
+    const equivalentFrameCount = Math.min(MAX_FRAMES, Math.max(1, Math.round((elapsed / CAPTURE_DURATION_MS) * MAX_FRAMES)));
+    setFrameCount(equivalentFrameCount);
+    setProgress((equivalentFrameCount / MAX_FRAMES) * 100);
   };
 
   const startCapturing = () => {
     stateRef.current.isRecording = true;
     stateRef.current.isFinishing = false;
     stateRef.current.buffer = [];
+    stateRef.current.captureStartedAt = Date.now();
     stateRef.current.silenceCounter = 0;
     setCaptureStatus('recording', copy.status.recording);
   };
@@ -217,7 +230,8 @@ export default function LipReadingPage() {
     }
 
     collectFrame(landmarks);
-    if (state.buffer.length >= MAX_FRAMES) {
+    const elapsed = Date.now() - state.captureStartedAt;
+    if (elapsed >= CAPTURE_DURATION_MS || state.buffer.length >= MAX_FRAMES) {
       finishCapturing();
       return;
     }
@@ -233,14 +247,21 @@ export default function LipReadingPage() {
       stateRef.current.isRecording = false;
       stateRef.current.isFinishing = false;
       stateRef.current.buffer = [];
+      stateRef.current.captureStartedAt = 0;
+      stateRef.current.historyDist = [];
+      stateRef.current.smoothedDist = 0;
+      stateRef.current.activeFrames = 0;
       setFrameCount(0);
       setProgress(0);
     }
   };
 
   const saveCookiePreference = () => {
+    writeCookie(LANG_COOKIE, language);
+    writeCookie(THEME_COOKIE, theme);
     writeCookie(COOKIE_OK, 'true');
     setShowCookiePanel(false);
+    setShowPreferenceModal(false);
   };
 
   return (
@@ -254,6 +275,7 @@ export default function LipReadingPage() {
         shell={shell}
         cameraOn={cameraOn}
         toggleCamera={toggleCamera}
+        openPreferences={() => setShowPreferenceModal(true)}
       />
 
       <main id="home">
@@ -287,6 +309,19 @@ export default function LipReadingPage() {
           theme={theme}
           setTheme={setTheme}
           savePreference={saveCookiePreference}
+        />
+      )}
+
+      {showPreferenceModal && (
+        <PreferenceBanner
+          copy={copy}
+          language={language}
+          setLanguage={setLanguage}
+          theme={theme}
+          setTheme={setTheme}
+          savePreference={saveCookiePreference}
+          mode="modal"
+          onClose={() => setShowPreferenceModal(false)}
         />
       )}
     </div>

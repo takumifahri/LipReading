@@ -1,9 +1,9 @@
 'use client';
 
-import { Camera, Languages, Moon, Play, Sun } from 'lucide-react';
+import { Camera, Languages, Moon, Play, Settings, Sun } from 'lucide-react';
 import SiReactIcon from './SiReactIcon';
 
-export default function SiteHeader({ copy, language, setLanguage, theme, setTheme, shell, cameraOn, toggleCamera }) {
+export default function SiteHeader({ copy, language, setLanguage, theme, setTheme, shell, cameraOn, toggleCamera, openPreferences }) {
   const isDark = theme === 'dark';
 
   return (
@@ -41,6 +41,14 @@ export default function SiteHeader({ copy, language, setLanguage, theme, setThem
             title="Theme"
           >
             {isDark ? <Sun size={17} /> : <Moon size={17} />}
+          </button>
+          <button
+            type="button"
+            onClick={openPreferences}
+            className={`inline-flex h-9 items-center justify-center rounded-md border px-2 sm:h-10 sm:px-3 ${shell.soft}`}
+            title={copy.prefs.title}
+          >
+            <Settings size={17} />
           </button>
           <button
             type="button"

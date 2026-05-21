@@ -8,6 +8,7 @@ export const ACTIVITY_THRESHOLD = 0.008;
 export const EMA_ALPHA = 0.15;
 export const START_DELAY_FRAMES = 3;
 export const MAX_FRAMES = 90;
+export const CAPTURE_DURATION_MS = 5000;
 export const FEATURES_PER_FRAME = LIP_INDICES.length * 2;
 export const HISTORY_STORAGE_KEY = 'lip_history';
 export const HISTORY_LIMIT = 5;
@@ -38,16 +39,52 @@ export function vectorizeLipFrame(landmarks) {
   return normalizeLandmarks(lipPoints);
 }
 
+function getFrameVector(frame) {
+  return Array.isArray(frame) ? frame : frame.vector;
+}
+
+function getFrameTime(frame, index) {
+  return Array.isArray(frame) ? index : frame.at;
+}
+
+function interpolateVectors(start, end, ratio) {
+  return start.map((value, index) => value + ((end[index] - value) * ratio));
+}
+
 export function fitLandmarkFramesToModelInput(frames) {
   if (frames.length === 0) return [];
-  if (frames.length === MAX_FRAMES) return frames;
-
-  if (frames.length < MAX_FRAMES) {
-    const lastFrame = frames[frames.length - 1];
-    return [...frames, ...Array.from({ length: MAX_FRAMES - frames.length }, () => lastFrame)];
+  if (frames.length === 1) {
+    const onlyFrame = getFrameVector(frames[0]);
+    return Array.from({ length: MAX_FRAMES }, () => onlyFrame);
   }
 
-  return frames.slice(0, MAX_FRAMES);
+  const firstTime = getFrameTime(frames[0], 0);
+  const lastTime = getFrameTime(frames[frames.length - 1], frames.length - 1);
+  const duration = Math.max(lastTime - firstTime, frames.length - 1);
+  const sampledFrames = [];
+  let sourceIndex = 0;
+
+  for (let i = 0; i < MAX_FRAMES; i += 1) {
+    const targetTime = firstTime + ((duration * i) / (MAX_FRAMES - 1));
+
+    while (
+      sourceIndex < frames.length - 2
+      && getFrameTime(frames[sourceIndex + 1], sourceIndex + 1) < targetTime
+    ) {
+      sourceIndex += 1;
+    }
+
+    const currentFrame = frames[sourceIndex];
+    const nextFrame = frames[Math.min(sourceIndex + 1, frames.length - 1)];
+    const currentTime = getFrameTime(currentFrame, sourceIndex);
+    const nextTime = getFrameTime(nextFrame, sourceIndex + 1);
+    const span = Math.max(nextTime - currentTime, 1);
+    const ratio = Math.min(Math.max((targetTime - currentTime) / span, 0), 1);
+
+    sampledFrames.push(interpolateVectors(getFrameVector(currentFrame), getFrameVector(nextFrame), ratio));
+  }
+
+  return sampledFrames;
 }
 
 export function buildLandmarkPayload(frames) {
